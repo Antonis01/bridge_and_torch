@@ -15,14 +15,14 @@ flashlight(bot).
 moves(X,T,bot):- 	
 		write('Move '), write(X), write(' to '),write('bot'), nl,
 		retract(bridge(X,T,top)),
-		assertz(bridge(X,T,bot)),
+		asserta(bridge(X,T,bot)),
 		retract(flashlight(top)),
 		asserta(flashlight(bot)).
 		
 moves(X,T,top):- 
 		write('Move '), write(X), write(' to '),write('top'), nl,
 		retract(bridge(X,T,bot)),
-		asserta(bridge(X,T,top)),
+		assertz(bridge(X,T,top)),
 		retract(flashlight(bot)),
 		asserta(flashlight(top)).
 
@@ -30,8 +30,8 @@ moves(X,T1,Y,T2,bot):-
 		write('Move '), write(X), write(','),write(Y), write(' to '),write('bot'), nl,
 		retract(bridge(X,T1,top)),
 		retract(bridge(Y,T2,top)),
-		assertz(bridge(X,T1,bot)),
-		assertz(bridge(Y,T2,bot)),
+		asserta(bridge(X,T1,bot)),
+		asserta(bridge(Y,T2,bot)),
 		retract(flashlight(top)),
 		asserta(flashlight(bot)).
 
@@ -39,8 +39,8 @@ moves(X,T1,Y,T2,top):-
        		write('Move '), write(X), write(','),write(Y), write(' to '),write('top'), nl,
 		retract(bridge(X,T1,bot)),
 		retract(bridge(Y,T2,bot)),
-		asserta(bridge(X,T1,top)),
-		asserta(bridge(Y,T2,top)),
+		assertz(bridge(X,T1,top)),
+		assertz(bridge(Y,T2,top)),
 		retract(flashlight(bot)),
 		asserta(flashlight(top)).
 
@@ -49,9 +49,9 @@ moves(X,T1,Y,T2,Z,T3,bot):-
 		retract(bridge(X,T1,top)),
 		retract(bridge(Y,T2,top)),
 		retract(bridge(Z,T3,top)),
-		assertz(bridge(X,T1,bot)),
-		assertz(bridge(Y,T2,bot)),
-		assertz(bridge(Z,T3,bot)),
+		asserta(bridge(X,T1,bot)),
+		asserta(bridge(Y,T2,bot)),
+		asserta(bridge(Z,T3,bot)),
 		retract(flashlight(top)),
 		asserta(flashlight(bot)).
 
@@ -60,9 +60,9 @@ moves(X,T1,Y,T2,Z,T3,top):-
 		retract(bridge(X,T1,bot)),
 		retract(bridge(Y,T2,bot)),
 		retract(bridge(Z,T3,bot)),
-		asserta(bridge(X,T1,top)),
-		asserta(bridge(Y,T2,top)),
-		asserta(bridge(Z,T3,top)),
+		assertz(bridge(X,T1,top)),
+		assertz(bridge(Y,T2,top)),
+		assertz(bridge(Z,T3,top)),
 		retract(flashlight(bot)),
 		asserta(flashlight(top)).
 
@@ -89,94 +89,33 @@ insert_bot_values(Total,Y) :-
         Y1 is Y+1,
         insert_bot_values(Total,Y1)).
 
-% comparing the time that the tourists need to cross the bridge
-compare_time(T1,T2) :-
-	T1 =< T2 -> T2 ; T1.
-
-:- dynamic locked_side/3.
-locked_side(_,_,_).
-
-
-% if there are two people on the bot side of the bridge move them to the top
-
-move_sides_top(BotNum,TopNum,Total) :-
-	BotNum = 2 -> (
-		bridge(X,T1,bot),
-		bridge(Y,T2,bot),
-		Num1 is BotNum-2,
-		Num2 is TopNum+2,
-		moves(X,T1,Y,T2,top),
-		move_sides_bot(Num1,Num2,Total,X,Y,bot)
-	);
-	BotNum = 3 -> (
-		bridge(X,T1,bot),
-		bridge(Y,T2,bot),
-		bridge(Z,T3,bot),
-		Num1 is BotNum-3,
-		Num2 is TopNum+3,
-		moves(X,T1,Y,T2,Z,T3,top),
-		move_sides_bot(Num1,Num2,Total,X,Y,bot)
-	);
-	Total = 0 -> true.
-
-
-move_sides_bot(BotNum,TopNum,Total,A,B,C) :-
-	TopNum = 2 -> (
-		bridge(X,T1,top),
-		bridge(Y,T2,top),
-		Num1 is BotNum+1,
-		Num2 is TopNum-2,
-		moves(X,T1,Y,T2,bot),
-		A is X,
-		B is T1,
-		C is bot,
-		asserta(locked_side(A,B,C)),
-		retract(bridge(A,B,C)),
-		Total1 is Total-1,
-		move_sides_top(Num1,Num2,Total1) 
-	);
-	TopNum = 3 -> (
-		bridge(X,T1,top),
-		bridge(Y,T2,top),
-		bridge(Z,T3,top),
-		Num1 is BotNum+1,
-		Num2 is TopNum-3,
-		moves(X,T1,Y,T2,Z,T3,bot),
-		A is X,
-		B is T1,
-		C is bot,
-		asserta(locked_side(A,B,C)),
-		retract(bridge(A,B,C)),
-		A is Y,
-		B is T2,
-		C is bot,
-		asserta(locked_side(A,B,C)),
-		retract(bridge(A,B,C)),
-		Total1 is Total-2,
-		move_sides_top(Num1,Num2,Total1)
-	);
-	TopNum > 3 -> (
-		bridge(X,T1,top),
-                bridge(Y,T2,top),
-                bridge(Z,T3,top),
-                Num1 is BotNum+1,
-        	Num2 is TopNum-3,
-		moves(X,T1,Y,T2,Z,T3,bot),
-		A is X,
-		B is T1,
-		C is bot,
-		asserta(locked_side(A,B,C)),
-		retract(bridge(A,B,C)),
-		A is Y,
-		B is T2,
-		C is bot,
-                asserta(locked_side(A,B,C)),
-                retract(bridge(A,B,C)),
-                Total1 is Total-2,
-                move_sides_top(Num1,Num2,Total1)
-	);
-	Total = 0 -> true.
+move(Num) :-
+	Num = 2 -> (
+		moves(_,_,_,_,top),
+		moves(_,_,_,_,_,_,bot),
+		moves(_,_,top),
+		moves(_,_,_,_,_,_,bot),
+		moves(_,_,top),
+		moves(_,_,_,_,_,_,bot)
 	
+	);
+	Num = 3 -> (
+		moves(_,_,top),
+		moves(_,_,_,_,_,_,bot),
+		moves(_,_,top),
+		moves(_,_,_,_,_,_,bot)
+	);
+	Num = 4 -> (
+		moves(_,_,top),
+		moves(_,_,_,_,bot),
+		moves(_,_,top),
+		moves(_,_,_,_,_,_,bot)
+	);
+	Num = 5 -> (
+		moves(_,_,top),
+		moves(_,_,_,_,_,_,bot)
+	).
+
 
 start :-
 	TotalTourists is 7,
@@ -196,7 +135,8 @@ start :-
 	flashlight(bot),
 	
 	write('Start'), nl,
-	move_sides_top(BotNum,TopNum,TotalTourists).
+	move(BotNum),
+	write('Finish').
 
 
 
